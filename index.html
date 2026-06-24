@@ -37,10 +37,22 @@
     var params = Object.assign({}, queryParams, fragmentParams);
 
     if (params['access_token']) {
-      localStorage.setItem('supabase_access_token', params['access_token']);
-      window.location.href = 'https://html-classic.itch.zone/html/18062596/index.html';
+      // Send token back to the opener (the game) via postMessage
+      if (window.opener) {
+        window.opener.postMessage(
+          { type: 'TWITCH_AUTH_TOKEN', access_token: params['access_token'] },
+          '*'
+        );
+        document.querySelector('p').textContent = 'Logged in! You can close this window.';
+        // Close the popup after a short delay
+        setTimeout(function() { window.close(); }, 1500);
+      } else {
+        // No opener -- fallback, save to localStorage directly
+        localStorage.setItem('supabase_access_token', params['access_token']);
+        document.querySelector('p').textContent = 'Logged in! Return to the game.';
+      }
     } else {
-      document.body.innerHTML = '<p>Login failed — no token found. Please close this tab and try again.</p>';
+      document.body.innerHTML = '<p>Login failed — no token found. Please close this window and try again.</p>';
     }
   </script>
 </body>
